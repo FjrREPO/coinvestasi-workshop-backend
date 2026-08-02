@@ -37,10 +37,8 @@ cast code 0x836B8005De6dF1e3A8908B0eeefd5f3B41E5D3Cc --rpc-url $RPC | head -c 20
 
 ```bash
 # dari root repo workshop
-bunx create-ponder ponder -t feature-factory --skip-git
+bunx create-ponder ponder
 ```
-
-Template `feature-factory` = pola Factory → child (sama `BountyFactory` → `BountyEscrow`).  
 
 ---
 
@@ -100,7 +98,7 @@ ponder/
 bun run dev
 ```
 
-Sukses kalau log kira-kira:
+Log sukses:
 
 ```
 Connected to database type=pglite ...
@@ -116,8 +114,6 @@ Yang terjadi:
 2. Handler di `src/index.ts` jalan per event
 3. Setelah catch-up → follow head (live)
 4. Port **42069** = debug GraphQL saja
-
-**API peserta / frontend = `cd ../backend && bun dev` (:3000).**
 
 ---
 
@@ -191,8 +187,8 @@ cast send <ESCROW> "submitWork(string)" "https://example.com/proof.md" \
 | Gejala                                  | Fix                                                  |
 | --------------------------------------- | ---------------------------------------------------- |
 | `PONDER_RPC_URL_97` missing / RPC error | Isi `.env.local`, ganti provider                     |
-| `eth_getCode` = `0x` di factory         | Alamat salah — pakai `0x836B...`                     |
-| Backfill stuck 0% lama                  | RPC rate-limit / range besar — tunggu atau ganti RPC |
+| `eth_getCode` = `0x` di factory         | Address salah                     |
+| Backfill stuck 0% lama                  | RPC rate-limit / range besar, tunggu atau ganti RPC |
 | 100% tapi `totalCount: 0`               | Belum ada `BountyCreated` → step 7                   |
 | `API endpoint file not found`           | Jangan hapus `src/api/index.ts`                      |
 | Mau REST `/board`                       | Itu `**../backend**`, bukan Ponder                   |
