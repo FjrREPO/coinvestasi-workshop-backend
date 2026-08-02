@@ -9,10 +9,9 @@ const bountyCreatedEvent = parseAbiItem(
   "event BountyCreated(uint256 indexed bountyId, address indexed escrow, address indexed creator, uint256 rewardAmount)",
 );
 
-// Factory yang MASIH live di BNB testnet (eth_getCode != 0x)
-// Catatan: broadcast run-latest 0xd2ed... code-nya kosong di chain sekarang.
-const FACTORY = "0x836B8005De6dF1e3A8908B0eeefd5f3B41E5D3Cc" as const;
-const START_BLOCK = 121_388_400; // 0x73c3d70
+// Deployment workshop (2 Agu 2026, verified) — salin dari SmartContract/broadcast/run-latest.json
+const FACTORY = "0xfed3881ffb229453f53c20ba377d10b857b08247" as const;
+const START_BLOCK = 122_685_851; // block deploy factory
 
 export default createConfig({
   chains: {
