@@ -20,25 +20,23 @@ curl http://localhost:3000/health
 
 ## API endpoints
 
-
 | Method | Route               | Deskripsi                                                      |
 | ------ | ------------------- | -------------------------------------------------------------- |
 | GET    | `/board`            | Semua bounty + submission (siapa posting apa, siapa klaim apa) |
-| GET    | `/bounty/:escrow`   | Detail satu bounty (live dari chain)                           |
-| GET    | `/wallet/:address`  | Bounty &amp; submission milik wallet tsb                       |
+| GET    | `/bounty/:escrow`   | Detail satu bounty (live dari chain, 6 view = 1 multicall)     |
+| GET    | `/wallet/:address`  | Bounty & submission milik wallet tsb                           |
 | GET    | `/balance/:address` | Saldo RWD token                                                |
 | GET    | `/health`           | Cek server nyala                                               |
 
-
 ## Arsitektur
 
-```markdown
-              backfill historis (getLogs per 8k block)
+```text
+              backfill historis (getLogs per 999 block)
 BNB Testnet ◄─────────────────────────────────────────────┐
     │                                                      │
-    │  backfill selesai → simpen checkpoint terakhir       │
+    │  checkpoint per chunk → mati di tengah tinggal lanjut│
     ▼                                                      │
-indexer.ts ──► SQLite (papan-sayembara.db) ◄──────────────┘
+indexer/ ──► SQLite (papan-sayembara.db) ◄────────────────┘
     │                                                      │
     │  watchEvent (realtime, terus nyala)                  │
     └──────────────────────────────────────────────────────┘
@@ -55,26 +53,27 @@ indexer.ts ──► SQLite (papan-sayembara.db) ◄─────────�
 
 ## File-file penting
 
-
-| File             | Isi                                          |
-| ---------------- | -------------------------------------------- |
-| `src/chain.ts`   | Koneksi RPC, alamat kontrak, event signature |
-| `src/abi.ts`     | ABI minimal yang kita butuh                  |
-| `src/db.ts`      | Skema SQLite + helper query                  |
-| `src/indexer.ts` | `backfill()` + `watch()` — jantung indexer   |
-| `src/service.ts` | `readContract` baca state + business logic   |
-| `src/index.ts`   | Start indexer + Hono routes                  |
-
+| File                      | Isi                                          |
+| ------------------------- | -------------------------------------------- |
+| `src/config.ts`           | Konfigurasi: RPC, alamat kontrak, konstanta  |
+| `src/contracts.ts`        | ABI + event definitions + label status       |
+| `src/lib/chain.ts`        | viem public client (fallback + rank)         |
+| `src/lib/db.ts`           | SQLite: skema, statement, query              |
+| `src/indexer/handlers.ts` | Log chain → baris database                   |
+| `src/indexer/backfill.ts` | Scan riwayat per chunk + checkpoint          |
+| `src/indexer/watch.ts`    | Pantau event baru real-time                  |
+| `src/services/bounty.ts`  | `readContract` + gabungan data on/off chain  |
+| `src/routes/api.ts`       | Endpoint REST (Hono)                         |
+| `src/index.ts`            | Entry point: indexer + server                |
 
 ## Konsep inti (buat ngajar)
 
-`**getLogs**` = minta node "kasih tau semua event X dari block A ke B".  
-`**watchEvent**` = "tolong kabari kalau ada event X yang baru masuk".  
+**`getLogs`** = minta node "kasih tau semua event X dari block A ke B".  
+**`watchEvent`** = "tolong kabari kalau ada event X yang baru masuk".  
 Keduanya pake HTTP RPC (public node) = gratis, tanpa WebSocket.
 
 ## Catatan untuk produksi
 
-- **Checkpointing:** kita simpen block terakhir di `sync_checkpoint` → aman untuk restart.
-- **Reorg:** `INSERT OR IGNORE` + `ON CONFLICT` = idempotent; reorg kecil gak ngerusak.
-- **Rate limit:** kalau kena spam dari public RPC, tambah `batch` atau ganti RPC paid.
-
+- **Checkpointing:** block terakhir disimpen di `sync_checkpoint` per chunk → aman untuk restart.
+- **Reorg:** `INSERT OR IGNORE` + `ON CONFLICT` + `tx_hash UNIQUE` = idempotent; reorg kecil gak ngerusak.
+- **Rate limit:** kode udah fallback + rank beberapa RPC dan retry per chunk; kalau masih ketat, isi `RPC_URL` di `.env` dengan API key (NodeReal/ZAN).
