@@ -21,13 +21,13 @@ Factory **live** di config:
 
 |            |                                              |
 | ---------- | -------------------------------------------- |
-| address    | `0x836B8005De6dF1e3A8908B0eeefd5f3B41E5D3Cc` (sesuaikan dengan smart contract address kamu) |
-| startBlock | `121388400` (sesuaikan dengan block smart contract kamu dideploy)                                  |
+| address    | `0xfed3881ffb229453f53c20ba377d10b857b08247` (sesuaikan dengan smart contract address kamu) |
+| startBlock | `122685851` (sesuaikan dengan block smart contract kamu dideploy)                                  |
 
 Cek:
 
 ```bash
-cast code 0x836B8005De6dF1e3A8908B0eeefd5f3B41E5D3Cc --rpc-url $RPC | head -c 20
+cast code 0xfed3881ffb229453f53c20ba377d10b857b08247 --rpc-url $RPC | head -c 20
 # harus bytecode, bukan 0x
 ```
 
@@ -105,7 +105,7 @@ Connected to database type=pglite ...
 Connected to JSON-RPC chain=bscTestnet hostnames=["rpc.ankr.com"]
 Created database tables count=2 tables=["bounty","submission"]
 Created HTTP server port=42069
-Started backfill indexing chain=bscTestnet block_range=[121388400, ...]
+Started backfill indexing chain=bscTestnet block_range=[122685851, ...]
 ```
 
 Yang terjadi:
@@ -159,7 +159,7 @@ Child escrow di-discover lewat `factory()` di config (parameter event `escrow`).
 
 ```bash
 cd ../SmartContract
-# BOUNTY_FACTORY=0x836B8005De6dF1e3A8908B0eeefd5f3B41E5D3Cc
+# BOUNTY_FACTORY=0xfed3881ffb229453f53c20ba377d10b857b08247
 forge script script/CreateBounty.s.sol:CreateBounty \
   --rpc-url $PONDER_RPC_URL_97 --broadcast --legacy -vvvv
 ```
