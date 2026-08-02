@@ -1,10 +1,10 @@
 // config.ts = satu tempat untuk semua konfigurasi & konstanta
 
-// RPC publik bisa mati kapan saja → daftar fallback, .env dicoba pertama
+// RPC publik bisa mati kapan saja → daftar fallback, .env dicoba pertama.
+// thirdweb sengaja TIDAK dipakai: getLogs-nya balikin [] kosong tanpa error (data hilang diam-diam).
 export const RPC_URLS = [
   process.env.RPC_URL,
   "https://bsc-testnet.drpc.org",
-  "https://97.rpc.thirdweb.com",
   "https://bsc-testnet-rpc.publicnode.com",
   "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
 ].filter(Boolean) as string[];
@@ -16,5 +16,5 @@ export const CONTRACTS = {
 } as const;
 
 export const DEPLOY_BLOCK = 122_685_851n; // block deploy factory, titik awal scan
-export const CHUNK = 999n; // muat di semua RPC gratis (thirdweb: maks 1000 block per getLogs)
+export const CHUNK = 9000n; // drpc gratis: maks 10k block per getLogs
 export const PORT = Number(process.env.PORT ?? 3000);
