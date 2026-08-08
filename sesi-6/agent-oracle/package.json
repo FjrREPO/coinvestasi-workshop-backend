@@ -1,0 +1,16 @@
+{
+  "name": "papan-sayembara-agent",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "bun run main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "viem": "^2.55.10"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "typescript": "^5.9.0"
+  }
+}
