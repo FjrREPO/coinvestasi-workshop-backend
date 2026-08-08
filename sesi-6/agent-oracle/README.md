@@ -31,7 +31,7 @@ src/
 ├── services/
 │   ├── oracle.ts             # baca escrow (multicall) + kirim verdict (tx legacy)
 │   ├── judge.ts              # juri AI: prompt, ambil rules+proof, JSON verdict
-│   └── backend-api.ts        # klien backend: GET /pending + POST /verdicts
+│   └── backend.ts            # klien backend: GET /pending + POST /verdicts
 └── index.ts                  # loop utama
 ```
 

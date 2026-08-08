@@ -4,7 +4,7 @@ import { getAddress } from "viem";
 import { BACKEND_API_URL, POLL_INTERVAL_MS } from "./config";
 import { STATUS_DISUBMIT } from "./contracts";
 import { account } from "./lib/chain";
-import { getPending, laporVerdict } from "./services/backend-api";
+import { getPending, laporVerdict } from "./services/backend";
 import { judgeSubmission } from "./services/judge";
 import { oracleOnchain, readEscrow, sendVerdict } from "./services/oracle";
 

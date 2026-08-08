@@ -1,4 +1,4 @@
-// services/backend-api.ts = klien ke backend kita: ambil antrean + lapor verdict
+// services/backend.ts = klien ke backend kita: ambil antrean + lapor verdict
 
 import { BACKEND_API_URL } from "../config";
 
