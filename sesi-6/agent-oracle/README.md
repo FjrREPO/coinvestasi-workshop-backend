@@ -2,14 +2,14 @@
 
 Juri AI Papan Sayembara: baca antrean dari backend (`GET /pending`), nilai proof vs rules pakai LLM, kirim `fulfillVerification(eligible)` on-chain, lalu lapor alasannya ke `POST /verdicts`.
 
-Versi Python (Sesi 4, BNB Agent Studio) ada di `../../agent-oracle/` — ini penulisan ulang satu bahasa dengan backend (Bun + viem).
+Versi Python (Sesi 4, BNB Agent Studio) ada di `../../agent-oracle/` — ini penulisan ulang satu bahasa dengan backend (Bun + viem), dengan struktur folder yang sama persis dengan `../backend`.
 
 ## Jalanin
 
 ```bash
 bun install
 cp .env.example .env   # isi AGENT_PK + LLM_API_KEY
-bun main.ts
+bun dev
 ```
 
 Backend Sesi 6 harus hidup dulu (`cd ../backend && bun dev`), dan wallet agent harus terdaftar sebagai oracle di factory (jalankan dari `SmartContract/` setelah `source .env`):
@@ -20,13 +20,20 @@ cast send 0x24df9c33d24d7c84e527d247d25a203490001be9 \
   --rpc-url https://bsc-testnet.drpc.org --private-key $WALLET_PK --legacy
 ```
 
-## Struktur
+## Struktur (sama dengan backend)
 
-| File | Fungsi |
-| --- | --- |
-| `chain.ts` | koneksi BSC Testnet, wallet agent, baca escrow (multicall), kirim verdict (tx legacy) |
-| `judge.ts` | juri AI: system prompt, ambil rules+proof, JSON verdict `{eligible, alasan}` |
-| `main.ts` | loop: `GET /pending` → verifikasi chain → nilai AI → tx → `POST /verdicts` |
+```
+src/
+├── config.ts                 # env + konstanta (factory, LLM, interval)
+├── contracts.ts              # ABI minimal + STATUS_DISUBMIT
+├── lib/
+│   └── chain.ts              # publicClient + wallet agent
+├── services/
+│   ├── oracle.ts             # baca escrow (multicall) + kirim verdict (tx legacy)
+│   ├── judge.ts              # juri AI: prompt, ambil rules+proof, JSON verdict
+│   └── backend-api.ts        # klien backend: GET /pending + POST /verdicts
+└── index.ts                  # loop utama
+```
 
 ## Catatan keamanan
 

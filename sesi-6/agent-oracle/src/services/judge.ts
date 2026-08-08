@@ -1,4 +1,6 @@
-// judge.ts = juri AI: nilai proof vs rules lewat LLM (endpoint OpenAI-compatible)
+// services/judge.ts = juri AI: nilai proof vs rules lewat LLM (endpoint OpenAI-compatible)
+
+import { LLM } from "../config";
 
 const SYSTEM_PROMPT =
   "Kamu adalah oracle verifikasi untuk Papan Sayembara (bounty board) on-chain. " +
@@ -28,12 +30,11 @@ export const judgeSubmission = async (rulesUri: string, proofUri: string, worker
     worker,
   });
 
-  const base = (process.env.LLM_BASE_URL ?? "https://openrouter.ai/api/v1").replace(/\/$/, "");
-  const res = await fetch(`${base}/chat/completions`, {
+  const res = await fetch(`${LLM.baseUrl}/chat/completions`, {
     method: "POST",
-    headers: { authorization: `Bearer ${process.env.LLM_API_KEY}`, "content-type": "application/json" },
+    headers: { authorization: `Bearer ${LLM.apiKey}`, "content-type": "application/json" },
     body: JSON.stringify({
-      model: process.env.LLM_MODEL ?? "anthropic/claude-sonnet-4.5",
+      model: LLM.model,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: soal },
