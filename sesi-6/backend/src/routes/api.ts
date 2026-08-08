@@ -53,8 +53,9 @@ app.get("/leaderboard", (c) => c.json({ leaderboard: getLeaderboard() }));
 // POST /verdicts → agent-oracle lapor hasil + alasan AI (chain cuma simpan true/false)
 app.post("/verdicts", async (c) => {
   const b = await c.req.json().catch(() => null);
-  if (!b || !isAddress(b.escrow) || !isAddress(b.worker) || typeof b.eligible !== "boolean" || typeof b.alasan !== "string")
-    return c.json({ error: "butuh: escrow, worker, eligible (boolean), alasan" }, 400);
+  const valid = b && isAddress(b.escrow) && isAddress(b.worker)
+    && typeof b.eligible === "boolean" && typeof b.alasan === "string";
+  if (!valid) return c.json({ error: "butuh: escrow, worker, eligible (boolean), alasan" }, 400);
   // lowercase biar konsisten dengan tabel submissions (alamat dari body bisa checksummed)
   insertVerdict.run({
     escrow: b.escrow.toLowerCase(), worker: b.worker.toLowerCase(), eligible: b.eligible ? 1 : 0,

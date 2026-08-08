@@ -104,9 +104,13 @@ export const getBoard = () => ({
 });
 
 // Submission yang masih menunggu penilaian (dipakai agent-oracle via GET /pending)
+export type PendingRow = Pick<SubmissionRow, "escrow" | "worker" | "proof_uri" | "block_number" | "created_at">;
+
 export const getPending = () =>
-  db.prepare("SELECT escrow, worker, proof_uri, block_number, created_at FROM submissions WHERE status = 'submitted' ORDER BY block_number ASC")
-    .all() as Pick<SubmissionRow, "escrow" | "worker" | "proof_uri" | "block_number" | "created_at">[];
+  db.prepare(`
+    SELECT escrow, worker, proof_uri, block_number, created_at FROM submissions
+    WHERE status = 'submitted' ORDER BY block_number ASC
+  `).all() as PendingRow[];
 
 // Peringkat worker: jumlah menang + total reward (BigInt di JS — wei kelewat besar buat SUM SQLite)
 export const getLeaderboard = () => {
