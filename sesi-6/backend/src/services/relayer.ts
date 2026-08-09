@@ -18,7 +18,7 @@ const gasPrice = () => client.getGasPrice();
 export const relayerAddress = () => relayerWallet?.account.address;
 
 // Factory narik RWD dari wallet relayer saat createBounty → butuh izin sekali di awal
-const pastikanApproval = async (amount: bigint) => {
+const ensureApproval = async (amount: bigint) => {
   const allowance = await client.readContract({
     address: CONTRACTS.rewardToken, abi: rewardTokenAbi, functionName: "allowance",
     args: [wallet().account.address, CONTRACTS.bountyFactory],
@@ -34,7 +34,7 @@ const pastikanApproval = async (amount: bigint) => {
 // Bikin bounty baru: approve (bila perlu) → createBounty → ambil alamat escrow dari event
 export const createBounty = async (reward: string, rulesURI: string, deadlineJam: number) => {
   const amount = parseEther(reward); // RWD 18 desimal: "10" → 10e18
-  await pastikanApproval(amount);
+  await ensureApproval(amount);
 
   const deadline = BigInt(Math.floor(Date.now() / 1000) + deadlineJam * 3600);
   const hash = await wallet().writeContract({

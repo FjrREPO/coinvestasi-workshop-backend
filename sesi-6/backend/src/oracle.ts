@@ -17,7 +17,7 @@ console.log(`Oracle on-chain: ${oracle}`);
 if (oracle.toLowerCase() !== oracleWallet.account.address.toLowerCase())
   console.log("PERINGATAN: wallet juri BUKAN oracle di factory. Tx bakal revert BukanOracle.");
 
-const sudahDinilai = new Set<string>(); // "escrow:proofURI" yang sudah diproses
+const judged = new Set<string>(); // "escrow:proofURI" yang sudah diproses
 
 console.log(`Juri AI jalan, polling tiap ${POLL_INTERVAL_MS / 1000} detik. Ctrl+C buat berhenti.`);
 while (true) {
@@ -25,13 +25,13 @@ while (true) {
     // Antrean langsung dari SQLite yang sama dengan indexer — tanpa HTTP
     for (const item of getPending()) {
       const escrow = getAddress(item.escrow);
-      const kunci = `${escrow}:${item.proof_uri}`;
-      if (sudahDinilai.has(kunci)) continue;
+      const key = `${escrow}:${item.proof_uri}`;
+      if (judged.has(key)) continue;
 
       // DB itu cache — sebelum kirim tx, cek kebenarannya di chain
       const e = await readEscrow(escrow);
       if (e.status !== "Disubmit") {
-        sudahDinilai.add(kunci); // indexer belum sinkron / sudah dinilai orang
+        judged.add(key); // indexer belum sinkron / sudah dinilai orang
         continue;
       }
 
@@ -42,7 +42,7 @@ while (true) {
 
       const { hash, sukses } = await sendVerdict(escrow, eligible);
       console.log(`  tx: ${hash} (${sukses ? "sukses" : "GAGAL"})`);
-      sudahDinilai.add(kunci);
+      judged.add(key);
 
       // Alasan AI disimpan off-chain — chain cuma tahu true/false
       if (sukses) insertVerdict.run({
