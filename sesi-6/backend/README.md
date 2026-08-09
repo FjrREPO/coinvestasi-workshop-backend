@@ -26,7 +26,28 @@ curl http://localhost:3000/health
 | GET    | `/bounty/:escrow`   | Detail satu bounty (live dari chain, 6 view = 1 multicall)     |
 | GET    | `/wallet/:address`  | Bounty & submission milik wallet tsb                           |
 | GET    | `/balance/:address` | Saldo RWD token                                                |
-| GET    | `/health`           | Cek server nyala                                               |
+| GET    | `/pending`          | Antrean submission yang menunggu penilaian (dipakai agent AI)  |
+| GET    | `/leaderboard`      | Peringkat worker: jumlah menang + total reward                 |
+| POST   | `/verdicts`         | Agent lapor hasil + **alasan** AI (chain cuma simpan true/false) |
+| GET    | `/verdicts/:escrow` | Riwayat penilaian AI satu bounty                               |
+| GET    | `/health`           | Cek server nyala + status relayer                              |
+
+### Endpoint tulis (relayer) — butuh `RELAYER_PK`
+
+Backend yang tanda tangan & bayar gas, jadi peserta bisa bikin bounty tanpa `cast`. Tanpa `RELAYER_PK` route ini balas `503` dan sisa API tetap jalan.
+
+| Method | Route                          | Body                                              |
+| ------ | ------------------------------ | ------------------------------------------------- |
+| POST   | `/relay/bounty`                | `{ reward: "5", rules_uri, deadline_jam?: 24 }`   |
+| POST   | `/relay/bounty/:escrow/submit` | `{ proof_uri }`                                   |
+
+```bash
+curl -X POST http://localhost:3000/relay/bounty -H 'content-type: application/json' \
+  -d '{"reward":"5","rules_uri":"https://contoh.com/RULES.md"}'
+# → {"hash":"0x...","escrow":"0x...","bountyId":4}
+```
+
+> ⚠️ **Ini pola kustodian, bukan pola web3 yang benar.** Backend menyimpan private key, jadi siapa pun yang bisa memanggil API-mu bisa membelanjakan dana wallet itu — dan semua bounty tercatat atas nama satu alamat. Dipakai di sini murni biar demo workshop gampang. Pola produksinya: user tanda tangan sendiri dari wallet-nya (materi Sesi 7).
 
 ## Arsitektur
 
@@ -58,11 +79,13 @@ indexer/ ──► SQLite (papan-sayembara.db) ◄──────────
 | `src/config.ts`           | Konfigurasi: RPC, alamat kontrak, konstanta  |
 | `src/contracts.ts`        | ABI + event definitions + label status       |
 | `src/lib/chain.ts`        | viem public client (fallback + rank)         |
+| `src/lib/wallet.ts`       | wallet relayer — satu-satunya yang tanda tangan tx |
 | `src/lib/db.ts`           | SQLite: skema, statement, query              |
 | `src/indexer/handlers.ts` | Log chain → baris database                   |
 | `src/indexer/backfill.ts` | Scan riwayat per chunk + checkpoint          |
 | `src/indexer/watch.ts`    | Pantau event baru real-time                  |
 | `src/services/bounty.ts`  | `readContract` + gabungan data on/off chain  |
+| `src/services/relayer.ts` | `writeContract`: createBounty + submitWork   |
 | `src/routes/api.ts`       | Endpoint REST (Hono)                         |
 | `src/index.ts`            | Entry point: indexer + server                |
 

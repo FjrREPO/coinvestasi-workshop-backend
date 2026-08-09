@@ -1,10 +1,11 @@
 // contracts.ts = semua definisi kontrak: ABI, event, label status
-// Backend ini read-only → hanya function view yang benar-benar dipanggil
+// view = dibaca gratis; sisanya dipanggil endpoint tulis lewat wallet relayer
 
 import { parseAbi, parseAbiItem } from "viem";
 
 export const bountyFactoryAbi = parseAbi([
   "function totalBounties() view returns (uint256)",
+  "function createBounty(uint256 rewardAmount, string rulesURI, uint256 submissionDeadline) returns (address)",
 ]);
 
 export const bountyEscrowAbi = parseAbi([
@@ -14,10 +15,13 @@ export const bountyEscrowAbi = parseAbi([
   "function rulesURI() view returns (string)",
   "function worker() view returns (address)",
   "function proofURI() view returns (string)",
+  "function submitWork(string proofURI)",
 ]);
 
 export const rewardTokenAbi = parseAbi([
   "function balanceOf(address account) view returns (uint256)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function approve(address spender, uint256 amount) returns (bool)",
 ]);
 
 // Event yang di-track (untuk getLogs / watchEvent)

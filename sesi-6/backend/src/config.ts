@@ -15,6 +15,9 @@ export const CONTRACTS = {
   bountyFactory: "0x24df9c33d24d7c84e527d247d25a203490001be9",
 } as const;
 
+// Wallet relayer buat endpoint tulis (opsional). Kosong = endpoint tulis mati, sisanya tetap jalan.
+export const RELAYER_PK = process.env.RELAYER_PK as `0x${string}` | undefined;
+
 export const DEPLOY_BLOCK = 122_732_476n; // block deploy factory, titik awal scan
 export const CHUNK = 9000n; // drpc gratis: maks 10k block per getLogs
 export const PORT = Number(process.env.PORT ?? 3000);

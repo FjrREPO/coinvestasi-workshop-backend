@@ -4,7 +4,9 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { isAddress } from "viem";
 import { getBoard, getLeaderboard, getPending, getVerdicts, insertVerdict } from "../lib/db";
+import { relayerWallet } from "../lib/wallet";
 import { balanceOf, board, readEscrow } from "../services/bounty";
+import { createBounty, relayerAddress, submitWork } from "../services/relayer";
 
 export const app = new Hono();
 
@@ -71,5 +73,31 @@ app.get("/verdicts/:escrow", (c) => {
   return c.json({ verdicts: getVerdicts(escrow.toLowerCase()) });
 });
 
-// GET /health → cek server hidup
-app.get("/health", (c) => c.json({ ok: true, time: new Date().toISOString() }));
+// --- Endpoint TULIS: backend yang tanda tangan & bayar gas (relayer) ---
+
+// Semua route di bawah butuh RELAYER_PK; tanpa itu backend cuma bisa baca
+app.use("/relay/*", async (c, next) => {
+  if (!relayerWallet) return c.json({ error: "relayer mati: isi RELAYER_PK di .env" }, 503);
+  await next();
+});
+
+// POST /relay/bounty → bikin bounty baru (approve + createBounty dalam satu panggilan)
+app.post("/relay/bounty", async (c) => {
+  const b = await c.req.json().catch(() => null);
+  if (!b || typeof b.reward !== "string" || typeof b.rules_uri !== "string")
+    return c.json({ error: "butuh: reward (string, mis. \"10\"), rules_uri" }, 400);
+  return c.json(await createBounty(b.reward, b.rules_uri, Number(b.deadline_jam ?? 24)), 201);
+});
+
+// POST /relay/bounty/:escrow/submit → kirim bukti kerjaan ke satu bounty
+app.post("/relay/bounty/:escrow/submit", async (c) => {
+  const escrow = c.req.param("escrow");
+  const b = await c.req.json().catch(() => null);
+  if (!isAddress(escrow)) return c.json({ error: "alamat tidak valid" }, 400);
+  if (!b || typeof b.proof_uri !== "string") return c.json({ error: "butuh: proof_uri" }, 400);
+  return c.json(await submitWork(escrow, b.proof_uri));
+});
+
+// GET /health → cek server hidup + status relayer
+app.get("/health", (c) =>
+  c.json({ ok: true, relayer: relayerAddress() ?? "mati", time: new Date().toISOString() }));
