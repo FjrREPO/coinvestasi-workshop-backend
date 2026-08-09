@@ -15,9 +15,18 @@ export const CONTRACTS = {
   bountyFactory: "0x24df9c33d24d7c84e527d247d25a203490001be9",
 } as const;
 
-// Wallet relayer buat endpoint tulis (opsional). Kosong = endpoint tulis mati, sisanya tetap jalan.
-export const RELAYER_PK = process.env.RELAYER_PK as `0x${string}` | undefined;
+// Dua wallet, dua peran. Kosong = fitur terkait mati, sisanya tetap jalan.
+export const RELAYER_PK = process.env.RELAYER_PK as `0x${string}` | undefined; // panitia: bikin bounty (/relay/*)
+export const ORACLE_PK = process.env.ORACLE_PK as `0x${string}` | undefined; // juri: kirim verdict (bun oracle)
+
+// LLM juri: endpoint OpenAI-compatible (OpenRouter / OpenAI / dll)
+export const LLM = {
+  baseUrl: (process.env.LLM_BASE_URL ?? "https://openrouter.ai/api/v1").replace(/\/$/, ""),
+  apiKey: process.env.LLM_API_KEY,
+  model: process.env.LLM_MODEL ?? "anthropic/claude-sonnet-4.5",
+} as const;
 
 export const DEPLOY_BLOCK = 122_732_476n; // block deploy factory, titik awal scan
 export const CHUNK = 9000n; // drpc gratis: maks 10k block per getLogs
 export const PORT = Number(process.env.PORT ?? 3000);
+export const POLL_INTERVAL_MS = Number(process.env.POLL_INTERVAL_SECONDS ?? 15) * 1000;

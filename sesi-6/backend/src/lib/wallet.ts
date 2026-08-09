@@ -1,12 +1,14 @@
-// lib/wallet.ts = wallet relayer: satu-satunya bagian backend yang bisa TANDA TANGAN transaksi
+// lib/wallet.ts = dua wallet yang bisa TANDA TANGAN transaksi; sisa backend read-only
 
 import { createWalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { bscTestnet } from "viem/chains";
-import { RELAYER_PK } from "../config";
+import { ORACLE_PK, RELAYER_PK } from "../config";
 import { transport } from "./chain";
 
-// null = RELAYER_PK belum diisi → endpoint tulis balas 503, endpoint baca tetap hidup
-export const relayerWallet = RELAYER_PK
-  ? createWalletClient({ account: privateKeyToAccount(RELAYER_PK), chain: bscTestnet, transport })
-  : null;
+const buat = (pk?: `0x${string}`) =>
+  pk ? createWalletClient({ account: privateKeyToAccount(pk), chain: bscTestnet, transport }) : null;
+
+// null = private key belum diisi → fitur terkait mati, sisanya tetap hidup
+export const relayerWallet = buat(RELAYER_PK); // panitia: createBounty + submitWork
+export const oracleWallet = buat(ORACLE_PK); // juri: fulfillVerification

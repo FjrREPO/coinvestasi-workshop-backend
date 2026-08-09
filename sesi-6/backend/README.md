@@ -1,22 +1,35 @@
-# Backend 1 — Mini Indexer Papan Sayembara
+# Backend Sesi 6 — Indexer + API + Juri AI
 
-> **Tujuan:** **API full** workshop (Hono :3000) + mini-indexer manual (viem + SQLite).  
-> Alternatif indexing otomatis: `../ponder` (Ponder = **index only**, GraphQL debug di :42069 — bukan API workshop).
+> Satu project, **dua perintah**: `bun dev` (indexer + REST API) dan `bun oracle` (juri AI).  
+> Keduanya berbagi `src/` yang sama — config, koneksi chain, dan database cuma ditulis sekali.
 
-> Baca event historis (`getLogs`) + dengerin event baru (`watchEvent`), lalu sajikan via API Hono.
+Alur produknya: baca event chain (`getLogs` + `watchEvent`) → SQLite → sajikan lewat REST → juri AI ambil antrean dari SQLite yang sama, menilai, lalu kirim verdict balik ke chain.
 
 ## Quick start
 
 ```bash
 bun install
+cp .env.example .env    # isi RELAYER_PK, ORACLE_PK, LLM_API_KEY
 
-# jalanin server (auto backfill + watch + API)
+# terminal 1: indexer + API
 bun dev
 
-# test API
+# terminal 2: juri AI (butuh ORACLE_PK + LLM_API_KEY)
+bun oracle
+
+# test
 curl http://localhost:3000/board
 curl http://localhost:3000/health
 ```
+
+## Dua wallet, dua peran
+
+| Env          | Peran                                     | Butuh                                  |
+| ------------ | ----------------------------------------- | -------------------------------------- |
+| `RELAYER_PK` | panitia: `createBounty`, `submitWork`     | tBNB (gas) **dan** RWD (hadiah)        |
+| `ORACLE_PK`  | juri: `fulfillVerification`               | tBNB saja, + didaftarkan via `setOracle` |
+
+Keduanya opsional: kosongkan `RELAYER_PK` → `/relay/*` balas 503; kosongkan `ORACLE_PK` → `bun oracle` berhenti dengan pesan jelas. API baca tetap hidup tanpa keduanya.
 
 ## API endpoints
 
@@ -79,15 +92,18 @@ indexer/ ──► SQLite (papan-sayembara.db) ◄──────────
 | `src/config.ts`           | Konfigurasi: RPC, alamat kontrak, konstanta  |
 | `src/contracts.ts`        | ABI + event definitions + label status       |
 | `src/lib/chain.ts`        | viem public client (fallback + rank)         |
-| `src/lib/wallet.ts`       | wallet relayer — satu-satunya yang tanda tangan tx |
+| `src/lib/wallet.ts`       | dua wallet (relayer + juri) — satu-satunya yang tanda tangan tx |
 | `src/lib/db.ts`           | SQLite: skema, statement, query              |
 | `src/indexer/handlers.ts` | Log chain → baris database                   |
 | `src/indexer/backfill.ts` | Scan riwayat per chunk + checkpoint          |
 | `src/indexer/watch.ts`    | Pantau event baru real-time                  |
 | `src/services/bounty.ts`  | `readContract` + gabungan data on/off chain  |
 | `src/services/relayer.ts` | `writeContract`: createBounty + submitWork   |
+| `src/services/judge.ts`   | Juri AI: prompt + verdict JSON dari LLM      |
+| `src/services/oracle.ts`  | `fulfillVerification` (wallet juri)          |
 | `src/routes/api.ts`       | Endpoint REST (Hono)                         |
-| `src/index.ts`            | Entry point: indexer + server                |
+| `src/index.ts`            | Entry point 1 (`bun dev`): indexer + server  |
+| `src/oracle.ts`           | Entry point 2 (`bun oracle`): loop juri AI   |
 
 ## Konsep inti (buat ngajar)
 

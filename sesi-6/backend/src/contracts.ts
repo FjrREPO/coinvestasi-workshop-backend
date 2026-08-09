@@ -5,6 +5,7 @@ import { parseAbi, parseAbiItem } from "viem";
 
 export const bountyFactoryAbi = parseAbi([
   "function totalBounties() view returns (uint256)",
+  "function oracle() view returns (address)",
   "function createBounty(uint256 rewardAmount, string rulesURI, uint256 submissionDeadline) returns (address)",
 ]);
 
@@ -16,6 +17,7 @@ export const bountyEscrowAbi = parseAbi([
   "function worker() view returns (address)",
   "function proofURI() view returns (string)",
   "function submitWork(string proofURI)",
+  "function fulfillVerification(bool eligible)",
 ]);
 
 export const rewardTokenAbi = parseAbi([

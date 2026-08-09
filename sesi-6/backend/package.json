@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "start": "bun run src/index.ts",
+    "oracle": "bun run src/oracle.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

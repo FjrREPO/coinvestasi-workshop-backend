@@ -7,7 +7,9 @@ import type { Address } from "viem";
 // strict: bind {param} tanpa prefix "@" + error bila ada parameter terlewat
 export const db = new Database("papan-sayembara.db", { create: true, strict: true });
 
-db.exec("PRAGMA journal_mode = WAL;");
+// WAL = baca & tulis barengan; busy_timeout = sabar antre kalau proses lain lagi nulis
+// (dua proses pakai file ini: `bun dev` untuk indexer/API dan `bun oracle` untuk juri)
+db.exec("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;");
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS bounties (
